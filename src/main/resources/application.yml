@@ -1,0 +1,41 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/quiz
+    username: root
+    password: root
+  mvc:
+    path match:
+      matching-strategy: ant-path-matcher
+#  jpa:
+#    hibernate:
+#      ddl-auto: update
+
+jwt:
+  secret: k205j@dkjf0%^@
+  expiration: 330000
+
+logging:
+  logback:
+    rolling policy:
+      file-name-pattern: ${LOG_FILE}.%d{yyyy-MM-dd}.%i.gz # by date
+      max-file-size: 10MB # by size
+  file:
+    name: C:\Users\metso\IdeaProjects\autoRent-Rest\log
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} %-5level - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  level:
+    root: info
+    com.example: info
+
+#mail:
+#  host: smtp.gmail.com
+#  port: 587
+#  username: metsoyan11@gmail.com
+#  password:
+#  properties:
+#    mail:
+#      smtp:
+#        auth: true
+#        starttls:
+#          enable: true
