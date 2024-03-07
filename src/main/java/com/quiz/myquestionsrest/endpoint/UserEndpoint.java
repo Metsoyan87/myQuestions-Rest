@@ -1,21 +1,16 @@
 package com.quiz.myquestionsrest.endpoint;
 
-
 import com.quiz.myquestionsrest.dto.*;
 import com.quiz.myquestionsrest.mapper.UserMapper;
 import com.quiz.myquestionsrest.model.User;
 import com.quiz.myquestionsrest.model.UserType;
-import com.quiz.myquestionsrest.repository.UserRepository;
-import com.quiz.myquestionsrest.security.CurrentUser;
 import com.quiz.myquestionsrest.service.UserService;
 import com.quiz.myquestionsrest.util.JwtTokenUtil;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,25 +29,44 @@ public class UserEndpoint {
 
 
     @GetMapping("/users")
-    public List<UserDto> getUsers(@AuthenticationPrincipal CurrentUser currentUser) {
+    public List<UserDto> getUsers() {
         log.info("called by {controller get users }");
-        return userMapper.map(userService.getAllUser());
-    }
+        List<User> users = userService.getAllUsers();
 
+        if (users.isEmpty()) {
+            log.info("Users not found");
+            return (List<UserDto>) ResponseEntity.noContent().build();
+        } else {
+            log.info("Users found, returning user list");
+            return ResponseEntity.ok(userMapper.map(users)).getBody();
+        }
+    }
     @DeleteMapping("/users/{id}")
     public ResponseEntity deleteById(@PathVariable("id") int id) {
+        Optional<User> userOptional = userService.findUserById(id);
         log.info("called by {controller delete user by id }");
-        userService.deleteById(id);
-        return new ResponseEntity<>("Users deleted successfully!.", HttpStatus.NO_CONTENT);
+
+        if (userOptional.isPresent()) {
+            userService.deleteById(id);
+            return new ResponseEntity<>("User deleted successfully!", HttpStatus.NO_CONTENT);
+        } else {
+            return new ResponseEntity<>("User not found.", HttpStatus.NOT_FOUND);
+        }
     }
 
-    @GetMapping("/users/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable("id") int id) {
-        log.info("called by {controller user get by id }");
-        return userService.findUserById(id)
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+        @GetMapping("/users/{id}")
+    public Optional<UserResponseDto> getUserById(@PathVariable("id") int id) {
+        Optional<User> users = userService.findUserById(id);
+        if (users.isPresent()) {
+            Optional<UserResponseDto> userResponseDto = userMapper.map(users);
+            log.info("called by {controller user get by id }");
+            return ResponseEntity.ok(userResponseDto).getBody();
+        } else {
+            log.info("User with id {} not found", id);
+            return null;
+        }
     }
+
 
     @PostMapping("/user")
     public ResponseEntity<?> register(@RequestBody CreateUserDto createUserDto) throws MessagingException {
@@ -60,10 +74,9 @@ public class UserEndpoint {
         if (existingUser.isPresent()) {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
-
         User user = userMapper.map(createUserDto);
         user.setUserType(UserType.STUDENT);
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setPassword(passwordEncoder.encode(createUserDto.getPassword()));
         return ResponseEntity.ok(userMapper.map(userService.save(user)));
     }
 
@@ -84,11 +97,17 @@ public class UserEndpoint {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
-    @PostMapping("/users/edit/{id}")
-    public EditUserDto updateUser(@PathVariable int id,
-                                  @RequestBody EditUserDto editUserDto) {
+    @PutMapping("/users/edit/{id}")
+    public String updateUser(@PathVariable int id,
+                             @RequestBody EditUserDto editUserDto) {
+
         userService.editUser(id, editUserDto);
         log.info("called by update {controller users }");
-        return editUserDto;
+        return "Пользователь с id " + id + " успешно обновлен.";
     }
 }
+
+
+
+
+

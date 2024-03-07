@@ -15,8 +15,6 @@ import java.util.Properties;
 
 @SpringBootApplication
 @Configuration
-
-//@EnableSwagger2
 public class MyQuestionsRestApplication extends SpringBootServletInitializer {
 
     public static void main(String[] args) {

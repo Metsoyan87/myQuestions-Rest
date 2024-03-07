@@ -24,7 +24,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public List<User> getAllUser() {
+    public List<User> getAllUsers() {
         return userRepository.findAll();
     }
 
@@ -62,7 +62,7 @@ public class UserService {
         edit(user, dto);
     }
 
-    private ResponseEntity<User> edit(User user, @NotNull EditUserDto dto) {
+    private void edit(User user, @NotNull EditUserDto dto) {
 
         String email = dto.getEmail();
         String password = dto.getPassword();
@@ -74,6 +74,6 @@ public class UserService {
             user.setPassword(passwordEncoder.encode(password));
         }
         userRepository.save(user);
-        return ResponseEntity.ok(user);
+        ResponseEntity.ok(user);
     }
 }

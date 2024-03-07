@@ -1,5 +1,6 @@
 package com.quiz.myquestionsrest.config;
 
+import com.quiz.myquestionsrest.model.UserType;
 import com.quiz.myquestionsrest.security.CurrentUserDetailServiceImpl;
 import com.quiz.myquestionsrest.security.JWTAuthenticationTokenFilter;
 import com.quiz.myquestionsrest.security.JwtAuthenticationEntryPoint;
@@ -11,12 +12,15 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
-public class WebSecurityConfig  {
+public class WebSecurityConfig {
 
 
     private final CurrentUserDetailServiceImpl userDetailsService;
@@ -26,19 +30,20 @@ public class WebSecurityConfig  {
     private final JwtAuthenticationEntryPoint unauthorizedHandler;
 
 
-    protected void configure(HttpSecurity http) throws Exception {
-        http.csrf().disable()
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http.
+                csrf().disable()
+                .authorizeHttpRequests()
+                .requestMatchers("/user/auth").permitAll()
+                .requestMatchers("/users").permitAll()
+                .requestMatchers("/user").permitAll()
+                .anyRequest()
+                .permitAll()
                 .and()
-                .exceptionHandling().authenticationEntryPoint(unauthorizedHandler)
-                .and()
-                .authorizeRequests()
-                .anyRequest().permitAll();
+                .exceptionHandling().accessDeniedPage("/accessDenied");
 
-        http.addFilterBefore(authenticationTokenFilterBean(), UsernamePasswordAuthenticationFilter.class);
-
-        http.headers().cacheControl();
-
+        return http.build();
     }
 
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {

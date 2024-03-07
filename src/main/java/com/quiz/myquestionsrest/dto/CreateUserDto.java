@@ -1,5 +1,6 @@
 package com.quiz.myquestionsrest.dto;
 
+import com.quiz.myquestionsrest.model.UserType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,5 +16,6 @@ public class CreateUserDto {
     private String surname;
     private String email;
     private String password;
+
 
 }

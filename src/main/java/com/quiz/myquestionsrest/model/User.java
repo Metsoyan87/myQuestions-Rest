@@ -36,5 +36,4 @@ public class User {
     @Enumerated(value = EnumType.STRING)
     private UserType userType;
 
-
 }
