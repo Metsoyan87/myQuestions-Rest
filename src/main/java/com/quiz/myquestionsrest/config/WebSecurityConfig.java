@@ -1,6 +1,5 @@
 package com.quiz.myquestionsrest.config;
 
-import com.quiz.myquestionsrest.model.UserType;
 import com.quiz.myquestionsrest.security.CurrentUserDetailServiceImpl;
 import com.quiz.myquestionsrest.security.JWTAuthenticationTokenFilter;
 import com.quiz.myquestionsrest.security.JwtAuthenticationEntryPoint;
@@ -12,15 +11,13 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.web.cors.CorsConfiguration;
-
-import java.util.List;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
-public class WebSecurityConfig {
+public class WebSecurityConfig extends WebSecurityConfigurerAdapter{
 
 
     private final CurrentUserDetailServiceImpl userDetailsService;
@@ -30,22 +27,25 @@ public class WebSecurityConfig {
     private final JwtAuthenticationEntryPoint unauthorizedHandler;
 
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.
-                csrf().disable()
-                .authorizeHttpRequests()
-                .requestMatchers("/user/auth").permitAll()
-                .requestMatchers("/users").permitAll()
-                .requestMatchers("/user").permitAll()
-                .anyRequest()
-                .permitAll()
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http.csrf().disable()
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
-                .exceptionHandling().accessDeniedPage("/accessDenied");
+                .exceptionHandling().authenticationEntryPoint(unauthorizedHandler)
+                .and()
+                .authorizeRequests()
+//                .antMatchers("/authors").hasAuthority(Role.ADMIN.name())
 
-        return http.build();
+                .anyRequest().permitAll();
+
+        http.addFilterBefore(authenticationTokenFilterBean(), UsernamePasswordAuthenticationFilter.class);
+
+        http.headers().cacheControl();
+
     }
 
+    @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.userDetailsService(userDetailsService)
                 .passwordEncoder(passwordEncoder);

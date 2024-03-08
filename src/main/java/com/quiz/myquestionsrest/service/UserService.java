@@ -3,15 +3,14 @@ package com.quiz.myquestionsrest.service;
 import com.quiz.myquestionsrest.dto.EditUserDto;
 import com.quiz.myquestionsrest.model.User;
 import com.quiz.myquestionsrest.repository.UserRepository;
-import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.antlr.v4.runtime.misc.NotNull;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,10 +36,8 @@ public class UserService {
 
     }
 
-    public User save(User user) throws MessagingException {
-        if (user == null) {
-            throw new RuntimeException("User can't be null");
-        }
+    public User save(User user)   {
+
         return userRepository.save(user);
     }
 

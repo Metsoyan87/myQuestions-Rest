@@ -6,7 +6,6 @@ import com.quiz.myquestionsrest.model.User;
 import com.quiz.myquestionsrest.model.UserType;
 import com.quiz.myquestionsrest.service.UserService;
 import com.quiz.myquestionsrest.util.JwtTokenUtil;
-import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -14,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import javax.mail.MessagingException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,7 +33,6 @@ public class UserEndpoint {
     public List<UserDto> getUsers() {
         log.info("called by {controller get users }");
         List<User> users = userService.getAllUsers();
-
         if (users.isEmpty()) {
             log.info("Users not found");
             return (List<UserDto>) ResponseEntity.noContent().build();
@@ -41,6 +41,7 @@ public class UserEndpoint {
             return ResponseEntity.ok(userMapper.map(users)).getBody();
         }
     }
+
     @DeleteMapping("/users/{id}")
     public ResponseEntity deleteById(@PathVariable("id") int id) {
         Optional<User> userOptional = userService.findUserById(id);
@@ -54,16 +55,16 @@ public class UserEndpoint {
         }
     }
 
-        @GetMapping("/users/{id}")
-    public Optional<UserResponseDto> getUserById(@PathVariable("id") int id) {
-        Optional<User> users = userService.findUserById(id);
-        if (users.isPresent()) {
-            Optional<UserResponseDto> userResponseDto = userMapper.map(users);
-            log.info("called by {controller user get by id }");
-            return ResponseEntity.ok(userResponseDto).getBody();
+    @GetMapping("/users/{id}")
+    public ResponseEntity<List<UserDto>> getUserById(@PathVariable("id") int id) {
+        Optional<User> userOptional = userService.findUserById(id);
+        if (userOptional.isPresent()) {
+            List<UserDto> userDtoList = Collections.singletonList(userMapper.map(userOptional.get()));
+            log.info("User with id {} found", id);
+            return ResponseEntity.ok(userDtoList);
         } else {
             log.info("User with id {} not found", id);
-            return null;
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
     }
 
@@ -87,7 +88,9 @@ public class UserEndpoint {
             User user = byEmail.get();
             if (passwordEncoder.matches(userAuthDto.getPassword(), user.getPassword())) {
                 log.info("User with username {} get auth token", user.getEmail());
+
                 return ResponseEntity.ok(UserAuthResponseDto.builder()
+                        .token(jwtTokenUtil.refreshToken(user.getEmail()))
                         .token(jwtTokenUtil.generateToken(user.getEmail()))
                         .user(userMapper.map(user))
                         .build()
@@ -98,12 +101,11 @@ public class UserEndpoint {
     }
 
     @PutMapping("/users/edit/{id}")
-    public String updateUser(@PathVariable int id,
-                             @RequestBody EditUserDto editUserDto) {
-
+    public EditUserDto updateUser(@PathVariable int id,
+                                  @RequestBody EditUserDto editUserDto) {
         userService.editUser(id, editUserDto);
-        log.info("called by update {controller users }");
-        return "Пользователь с id " + id + " успешно обновлен.";
+        log.info("user update");
+        return editUserDto;
     }
 }
 
