@@ -31,7 +31,13 @@ public class QuestionService {
         return questionRepository.findById(id).orElse(null);
     }
 
+    public void deleteById(int id) {
+        if (questionRepository.findById(id).isEmpty()) {
+            throw new RuntimeException("User can not a found");
+        }
+        questionRepository.deleteById(id);
 
+    }
     public List<Question> findAll() {
         return questionRepository.findAll();
     }
