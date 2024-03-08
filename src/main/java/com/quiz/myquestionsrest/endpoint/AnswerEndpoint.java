@@ -1,18 +1,17 @@
 package com.quiz.myquestionsrest.endpoint;
 
-import com.quiz.myquestionsrest.dto.UserDto;
+import com.quiz.myquestionsrest.dto.CreateUserDto;
 import com.quiz.myquestionsrest.model.Answer;
 import com.quiz.myquestionsrest.model.User;
+import com.quiz.myquestionsrest.model.UserType;
 import com.quiz.myquestionsrest.service.AnswerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.Collections;
+import javax.mail.MessagingException;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,16 +36,17 @@ public class AnswerEndpoint {
             return ResponseEntity.ok(answers).getBody();
         }
     }
-    @GetMapping("/answer/{id}")
+
+    @GetMapping("/answers/{id}")
     public ResponseEntity<Answer> getAnswerById(@PathVariable("id") int id) {
-        Optional<Answer> answer = answerService.findByAnswerById(id);
-        if (answer.isPresent()) {
-            List<Answer> answerList = Collections.singletonList(answer.get());
+        Optional<Answer> answerOptional = answerService.findByAnswerById(id);
+        if (answerOptional.isPresent()) {
+            Answer answer = answerOptional.get();
             log.info("Answer with id {} found", id);
-            return ResponseEntity.ok((Answer) answerList);
+            return ResponseEntity.ok(answer);
         } else {
             log.info("Answer with id {} not found", id);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            return ResponseEntity.notFound().build();
         }
     }
 

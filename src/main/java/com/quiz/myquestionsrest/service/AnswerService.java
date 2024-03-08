@@ -1,6 +1,7 @@
 package com.quiz.myquestionsrest.service;
 
 import com.quiz.myquestionsrest.model.Answer;
+import com.quiz.myquestionsrest.model.User;
 import com.quiz.myquestionsrest.repository.AnswerRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -15,7 +16,6 @@ import java.util.Optional;
 public class AnswerService {
 
     private final AnswerRepository answerRepository;
-
 
 
     public Optional<Answer> findByAnswerById(int id) {
