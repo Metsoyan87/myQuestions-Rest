@@ -12,7 +12,7 @@ public interface QuizRepository extends JpaRepository<Quiz, Integer> {
 
     Optional<Quiz> findByTitle(String title);
 
-    Quiz findById(int  id);
+
 
 
 }

@@ -104,6 +104,7 @@ class UserServiceTest {
                 .build();
 
         List<User> userList = Arrays.asList(user, user1);
+
         when(userRepository.findAll()).thenReturn(userList);
         List<User> result = userService.getAllUsers();
         assertNotNull(result);
