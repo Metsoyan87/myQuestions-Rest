@@ -1,6 +1,7 @@
 package com.quiz.myquestionsrest.endpoint;
 
 import com.quiz.myquestionsrest.dto.*;
+import com.quiz.myquestionsrest.exception.EntityNotFoundException;
 import com.quiz.myquestionsrest.mapper.UserMapper;
 import com.quiz.myquestionsrest.model.User;
 import com.quiz.myquestionsrest.model.UserType;
@@ -70,7 +71,7 @@ public class UserEndpoint {
 
 
     @PostMapping("/user")
-    public ResponseEntity<?> register(@RequestBody CreateUserDto createUserDto) throws MessagingException {
+    public ResponseEntity<?> register(@RequestBody CreateUserDto createUserDto) throws MessagingException, EntityNotFoundException {
         Optional<User> existingUser = userService.findByEmail(createUserDto.getEmail());
         if (existingUser.isPresent()) {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();

@@ -32,4 +32,8 @@ public class QuestionOptionService {
     }
 
 
+    public Optional<QuestionOption> findQuestionOptionById(int id) {
+        return questionOptionRepository.findById(id);
+
+    }
 }

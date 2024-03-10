@@ -1,6 +1,7 @@
 package com.quiz.myquestionsrest.service;
 
 import com.quiz.myquestionsrest.dto.EditUserDto;
+import com.quiz.myquestionsrest.exception.EntityNotFoundException;
 import com.quiz.myquestionsrest.model.User;
 import com.quiz.myquestionsrest.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -36,8 +37,10 @@ public class UserService {
 
     }
 
-    public User save(User user)   {
-
+    public User save(User user) throws EntityNotFoundException {
+        if (user == null) {
+            throw new EntityNotFoundException("User null");
+        }
         return userRepository.save(user);
     }
 
@@ -63,13 +66,8 @@ public class UserService {
 
         String email = dto.getEmail();
         String password = dto.getPassword();
-
-        if (StringUtils.hasText(email)) {
-            user.setEmail(email);
-        }
-        if (StringUtils.hasText(password)) {
-            user.setPassword(passwordEncoder.encode(password));
-        }
+        if (StringUtils.hasText(email)) user.setEmail(email);
+        if (StringUtils.hasText(password)) user.setPassword(passwordEncoder.encode(password));
         userRepository.save(user);
         ResponseEntity.ok(user);
     }

@@ -1,6 +1,8 @@
 package com.quiz.myquestionsrest.endpoint;
 
+import com.quiz.myquestionsrest.dto.UserDto;
 import com.quiz.myquestionsrest.model.Quiz;
+import com.quiz.myquestionsrest.model.User;
 import com.quiz.myquestionsrest.service.QuizService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

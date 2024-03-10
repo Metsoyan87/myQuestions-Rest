@@ -1,11 +1,10 @@
-package com.quiz.service;
+package com.quiz.myquestionsrest.service;
 
 import com.quiz.myquestionsrest.dto.EditUserDto;
 import com.quiz.myquestionsrest.exception.EntityNotFoundException;
 import com.quiz.myquestionsrest.model.User;
 import com.quiz.myquestionsrest.model.UserType;
 import com.quiz.myquestionsrest.repository.UserRepository;
-import com.quiz.myquestionsrest.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
