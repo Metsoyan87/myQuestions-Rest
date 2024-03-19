@@ -31,23 +31,23 @@ public class UserEndpoint {
 
 
     @GetMapping("/users")
-    public List<UserDto> getUsers() {
+    public ResponseEntity<List<UserDto>> getUsers() {
         log.info("called by {controller get users }");
-        List<User> users = userService.getAllUsers();
+        List<User> users = userService.findAllUsers();
         if (users.isEmpty()) {
             log.info("Users not found");
-            return (List<UserDto>) ResponseEntity.noContent().build();
+            return ResponseEntity.noContent().build();
         } else {
             log.info("Users found, returning user list");
-            return ResponseEntity.ok(userMapper.map(users)).getBody();
+            return ResponseEntity.ok(userMapper.map(users));
         }
     }
+
 
     @DeleteMapping("/users/{id}")
     public ResponseEntity deleteById(@PathVariable("id") int id) {
         Optional<User> userOptional = userService.findUserById(id);
         log.info("called by {controller delete user by id }");
-
         if (userOptional.isPresent()) {
             userService.deleteById(id);
             return new ResponseEntity<>("User deleted successfully!", HttpStatus.NO_CONTENT);

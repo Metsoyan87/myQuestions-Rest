@@ -37,4 +37,10 @@ public class User {
     @Enumerated(value = EnumType.STRING)
     private UserType userType;
 
+
+    public User(String john, String doe) {
+    }
+
+    public User(int userId, String johnDoe) {
+    }
 }
