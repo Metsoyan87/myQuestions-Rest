@@ -2,6 +2,8 @@ package com.quiz.myquestionsrest.endpoint;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.quiz.myquestionsrest.dto.CreateUserDto;
+import com.quiz.myquestionsrest.dto.EditUserDto;
+import com.quiz.myquestionsrest.dto.UserAuthDto;
 import com.quiz.myquestionsrest.dto.UserDto;
 import com.quiz.myquestionsrest.mapper.UserMapper;
 import com.quiz.myquestionsrest.model.User;
@@ -11,16 +13,13 @@ import com.quiz.myquestionsrest.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -29,16 +28,14 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(SpringExtension.class)
 @RunWith(SpringRunner.class)
@@ -55,19 +52,13 @@ class UserEndpointTest {
     @MockBean
     private UserService userService;
 
-    @MockBean
-    private UserMapper userMapper;
-
     @Autowired
     private ObjectMapper objectMapper;
 
     @Autowired
     private MockMvc mockMvc;
-
-    @Autowired
-    private TestRestTemplate restTemplate;
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    @Mock
+    private UserMapper userMapper;
     private static final String BASE_URL = "http://localhost:8080";
 
 
@@ -108,7 +99,7 @@ class UserEndpointTest {
     }
 
     @Test
-    public void testDeleteUserById() throws Exception {
+    public void testDelete_User_By_Id() throws Exception {
         int userId = 1;
 
         // Mocking userService behavior
@@ -122,6 +113,7 @@ class UserEndpointTest {
         // Verify that userService.deleteById was called
         verify(userService, times(1)).deleteById(userId);
     }
+
     @Test
     public void deleteUserById_shouldReturnNotFound_whenUserDoesNotExist() throws Exception {
         // Given
@@ -131,8 +123,9 @@ class UserEndpointTest {
         mockMvc.perform(MockMvcRequestBuilders.delete("/users/{id}", nonExistentUserId))
                 .andExpect(MockMvcResultMatchers.status().isNotFound());
     }
+
     @Test
-    void getUserByIdNotFound() throws Exception {
+    void getUser_ByIdNot_Found() throws Exception {
 
         User user = User.builder()
                 .id(250)
@@ -147,6 +140,7 @@ class UserEndpointTest {
         response.andExpect(status().isNotFound());
 
     }
+
     @Test
     public void testRegisterUser_Success() throws Exception {
         // Mocking the behavior of UserService
@@ -169,6 +163,7 @@ class UserEndpointTest {
         // Verify that userService.save() is called
         verify(userService, times(1)).save(any(User.class));
     }
+
     @Test
     public void testRegisterUser_Conflict() throws Exception {
         // Mocking the behavior of UserService
@@ -193,5 +188,57 @@ class UserEndpointTest {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Test
+    public void auth_WithValidCredentials_ReturnsAuthToken() throws Exception {
+        // Given
+        String email = "test@example.com";
+        String password = "password";
+        UserAuthDto userAuthDto = new UserAuthDto(email, password);
+        User user = new User();
+        user.setEmail(email);
+        user.setPassword(password);
+        when(userService.findByEmail(email)).thenReturn(Optional.of(user));
+        when(userMapper.map(user)).thenReturn(new UserDto(user.getId(), user.getEmail()));
+
+        // When
+        mockMvc.perform(MockMvcRequestBuilders.post("/user/auth")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(userAuthDto)))
+                // Then
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.token").exists())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.user.email").value(email));
+    }
+
+    @Test
+    public void auth_WithInvalidCredentials_ReturnsUnauthorized() throws Exception {
+        // Given
+        String email = "test@example.com";
+        String password = "password";
+        UserAuthDto userAuthDto = new UserAuthDto(email, password);
+        when(userService.findByEmail(email)).thenReturn(Optional.empty());
+
+        // When
+        mockMvc.perform(MockMvcRequestBuilders.post("/user/auth")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(userAuthDto)))
+                // Then
+                .andExpect(MockMvcResultMatchers.status().isUnauthorized());
+    }
+
+    @Test
+    void updateUser_ReturnsOk() throws Exception {
+        EditUserDto editUserDto = new EditUserDto();
+        editUserDto.setEmail("UpdatedName");
+        editUserDto.setEmail("updated@example.com");
+
+        doNothing().when(userService).editUser(anyInt(), any(EditUserDto.class));
+
+        mockMvc.perform(put("/users/edit/{id}", 1)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(editUserDto)))
+                .andExpect(status().isOk());
     }
 }
